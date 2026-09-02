@@ -84,7 +84,7 @@ function closeNavMenu() { document.getElementById('nav-modal').style.display = '
 
 function openAboutUs() {
     closeNavMenu();
-    showCustomModal("ABOUT US", "<p>Welcome to Dots and Boxes Game!<br><br>Created with passion to provide high-quality multiplayer arcade gaming experience directly in your browser.</p>");
+    showCustomModal("ABOUT US", "<p>Welcome to Dots and Boxes Game!<br><br>Created by riyanshu.devl.Ai capture more boxes to win the game hope y'all enjoying my game feel free to contect me to suggest game or changes or check my other game's too.</p>");
 }
 
 function openHelp() {
