@@ -1,5 +1,5 @@
 const IS_MAINTENANCE_MODE = false;
-const OTHER_GAME_URL = "https://example.com/other-games";
+const OTHER_GAME_URL = "https://arcade-edition.onrender.com/";
 
 const COLOR_PALETTE = [
     { name: 'Red', hex: '#FF3547', darkHex: '#CC0000' },
@@ -58,7 +58,7 @@ function checkMaintenanceStatus() {
 }
 
 function redirectToOtherGame() {
-    window.location.href = "https://arcade-edition.onrender.com/";
+    window.location.href = OTHER_GAME_URL;
 }
 
 function showCustomModal(title, contentHTML, buttonsHTML = null) {
