@@ -95,10 +95,10 @@ function openHelp() {
         </p>
         <div style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
             <a href="mailto:riyanshusinh@gmail.com" style="color:#0088FF; font-size:16px; text-decoration:underline; font-weight:bold; word-break:break-all;">
-                ✉️ riyanshusinh@gmail.com
+                riyanshusinh@gmail.com
             </a>
             <a href="https://instagram.com/riyanshu_1233" target="_blank" style="color:#FF3547; font-size:16px; text-decoration:underline; font-weight:bold;">
-                📸 @riyanshu_1233
+                 @riyanshu_1233
             </a>
         </div>
     `;
@@ -681,14 +681,14 @@ function showFinalScoreboard() {
     } else if (gameMode === 'room' || gameMode === 'ai') {
         let myData = players[myPlayerIndex];
         if (myData.score === highestScore) {
-            titleHTML = "🏆 YOU WIN!";
+            titleHTML = " YOU WIN!";
         } else if (myData.score === lowestScore) {
-            titleHTML = "💀 YOU LOOSE!";
+            titleHTML = " YOU LOOSE!";
         } else {
             titleHTML = "GAME OVER!";
         }
     } else {
-        titleHTML = `🎉 ${winners[0].name.toUpperCase()} WINS!`;
+        titleHTML = ` ${winners[0].name.toUpperCase()} WINS!`;
     }
 
     let listHTML = `<div class="rank-list">`;
