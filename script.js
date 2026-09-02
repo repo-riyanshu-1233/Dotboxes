@@ -1,4 +1,4 @@
-const IS_MAINTENANCE_MODE = false;
+const IS_MAINTENANCE_MODE = true;
 const OTHER_GAME_URL = "https://arcade-edition.onrender.com/";
 
 const COLOR_PALETTE = [
