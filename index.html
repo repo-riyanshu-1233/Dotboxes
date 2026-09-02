@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dots and Boxes - Animated Edition</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+    <video autoplay muted loop id="bg-video">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-digital-lines-animation-41555-large.mp4" type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+    <div class="bg-overlay"></div>
+
+    <div id="maintenance-overlay">
+        <div class="maintenance-card fade-in">
+            <h1 style="color:#FF3547; font-size:32px; margin-bottom:15px;">⚠️ MAINTENANCE</h1>
+            <p style="font-size:18px; line-height:1.4; color:#FFF; margin-bottom:20px;">
+                Maintenance is ongoing. We are fixing bugs and upgrading our game until check my other game.
+            </p>
+            <p style="font-size:14px; color:#AAA; margin-bottom:25px; letter-spacing:1px; text-transform:uppercase;">
+                Server unreachable
+            </p>
+            <button class="btn-arcade btn-green" onclick="redirectToOtherGame()">Check Other Game</button>
+        </div>
+    </div>
+
+    <div id="menu-screen" class="panel screen active fade-in">
+        <div class="menu-hamburger-btn" onclick="openNavMenu()">
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+            <div class="hamburger-line"></div>
+        </div>
+
+        <h1 class="game-title">DOTS & BOXES</h1>
+
+        <div class="button-stack">
+            <button class="btn-arcade btn-green" onclick="showPassPlaySettings()">Pass & Play</button>
+            <button class="btn-arcade btn-yellow" onclick="showAISettings()">Vs AI Mode</button>
+            <button class="btn-arcade btn-blue" onclick="showRoomMenu()">Room Mode</button>
+            <button class="btn-arcade btn-gray" onclick="showGlobalNotice()">Global Mode</button>
+        </div>
+    </div>
+
+    <div id="pass-screen" class="panel screen">
+        <h2 style="margin-bottom:20px; color:#FFD700;" class="game-title">SELECT PLAYERS</h2>
+        <div class="button-stack">
+            <button class="btn-arcade btn-green" onclick="startPassAndPlay(2)">2 Players (6x6 Grid)</button>
+            <button class="btn-arcade btn-yellow" onclick="startPassAndPlay(3)">3 Players (8x8 Grid)</button>
+            <button class="btn-arcade btn-blue" onclick="startPassAndPlay(4)">4 Players (9x9 Grid)</button>
+            <button class="btn-arcade btn-gray" onclick="showScreen('menu-screen')">Back</button>
+        </div>
+    </div>
+
+    <div id="ai-screen" class="panel screen">
+        <h2 style="margin-bottom:20px; color:#FFD700;" class="game-title">SELECT AI LEVEL</h2>
+        <div class="button-stack">
+            <button class="btn-arcade btn-green" onclick="startAIMode('beginner')">Beginner</button>
+            <button class="btn-arcade btn-yellow" onclick="startAIMode('intermediate')">Intermediate</button>
+            <button class="btn-arcade btn-blue" onclick="startAIMode('smart')">Smart</button>
+            <button class="btn-arcade btn-red" onclick="startAIMode('hard')">Hard</button>
+            <button class="btn-arcade btn-gray" onclick="showScreen('menu-screen')">Back</button>
+        </div>
+    </div>
+
+    <div id="room-menu-screen" class="panel screen">
+        <h2 style="margin-bottom:15px; color:#FFD700;" class="game-title">MULTIPLAYER ROOM</h2>
+        <input type="text" id="player-name" placeholder="Enter Name" maxlength="10">
+        
+        <div class="button-stack">
+            <button class="btn-arcade btn-green" onclick="createRoom()">Create Room</button>
+            <input type="text" id="join-code" placeholder="4-Digit Code" maxlength="4" style="margin-top:10px;">
+            <button class="btn-arcade btn-yellow" onclick="joinRoom()">Join Room</button>
+            <button class="btn-arcade btn-gray" onclick="showScreen('menu-screen')">Back</button>
+        </div>
+    </div>
+
+    <div id="lobby-screen" class="panel screen">
+        <h2 style="color:#FFD700;" class="game-title">ROOM LOBBY</h2>
+        <h3 style="margin:10px 0;">Code: <span id="display-room-code" style="color:#FF3547;">----</span></h3>
+        <div id="lobby-players-list" class="button-stack" style="margin: 15px 0;"></div>
+        
+        <div class="button-stack">
+            <button id="start-game-btn" class="btn-arcade btn-green" style="display:none;" onclick="startRoomGame()">Start Game</button>
+            <button class="btn-arcade btn-gray" onclick="exitGame()">Leave Room</button>
+        </div>
+        <p id="waiting-msg" style="margin-top:15px; color:#AAA;">Waiting for players (Min 2 required)...</p>
+    </div>
+
+    <div id="game-screen" class="panel screen">
+        <button class="top-exit-btn" onclick="exitGame()">✖</button>
+
+        <div class="board-container-center">
+            <div class="board-wrapper">
+                <canvas id="gameCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="scoreboard-container" id="players-score-list"></div>
+    </div>
+
+    <div id="nav-modal" class="modal-overlay">
+        <div class="modal-content fade-in">
+            <h2 style="color:#FFD700;">GAME OPTIONS</h2>
+            <div class="menu-options-list">
+                <button class="btn-arcade btn-blue" onclick="openAboutUs()">About Us</button>
+                <button class="btn-arcade btn-yellow" onclick="openHelp()">Help</button>
+                <button class="btn-arcade btn-green" onclick="redirectToOtherGame()">Other Games</button>
+                <button class="btn-arcade btn-gray" onclick="closeNavMenu()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-modal" class="modal-overlay">
+        <div class="modal-content fade-in">
+            <h2 id="modal-title" style="color:#FFD700;">NOTICE</h2>
+            <div id="modal-body" style="margin:15px 0; line-height:1.5;"></div>
+            <div id="modal-buttons" class="button-stack">
+                <button class="btn-arcade btn-red" onclick="closeModal()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
