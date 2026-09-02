@@ -89,7 +89,52 @@ function openAboutUs() {
 
 function openHelp() {
     closeNavMenu();
-    showCustomModal("HOW TO PLAY", "<p>1. Connect 2 dots with a line.<br>2. Complete 4 sides of a box to capture it.<br>3. Capturing a box gives you an extra turn!<br>4. The player with most boxes wins!</p>");
+    const helpContent = `
+        <p style="font-size:15px; margin-bottom:15px; line-height:1.4;">
+            If you have any questions and problem please contact us through mail or direct Instagram message.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:10px;">
+            <a href="mailto:riyanshusinh@gmail.com" style="color:#0088FF; font-size:16px; text-decoration:underline; font-weight:bold; word-break:break-all;">
+                ✉️ riyanshusinh@gmail.com
+            </a>
+            <a href="https://instagram.com/riyanshu_1233" target="_blank" style="color:#FF3547; font-size:16px; text-decoration:underline; font-weight:bold;">
+                📸 @riyanshu_1233
+            </a>
+        </div>
+    `;
+    showCustomModal("HELP & SUPPORT", helpContent);
+}
+
+function showToast(message) {
+    let toast = document.getElementById('toast-notification');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.style.cssText = `
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #FF3547;
+            color: #FFF;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+            z-index: 10000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: opacity 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.innerText = message;
+    toast.style.opacity = '1';
+    toast.style.display = 'block';
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.style.display = 'none'; }, 300);
+    }, 3000);
 }
 
 function showGlobalNotice() {
@@ -155,9 +200,9 @@ function createRoom() {
             conn.close();
             return;
         }
-        connections.push(conn);
+        
         conn.on('data', (data) => handleNetworkData(data, conn));
-        conn.on('close', () => { connections = connections.filter(c => c !== conn); });
+        conn.on('close', () => handlePlayerDisconnect(conn));
     });
 
     peer.on('error', () => { showCustomModal("ERROR", "Failed to create room code. Try again."); });
@@ -179,6 +224,9 @@ function joinRoom() {
         connections = [conn];
         conn.on('open', () => conn.send({ type: 'JOIN', name: name }));
         conn.on('data', (data) => handleNetworkData(data, conn));
+        conn.on('close', () => {
+            showCustomModal("DISCONNECTED", "<p>Disconnected from room.</p>", `<button class="btn-arcade btn-red" onclick="closeModal(); exitGame();">Menu</button>`);
+        });
     });
 
     peer.on('error', () => { showCustomModal("ERROR", "Room not found or connection error."); });
@@ -188,6 +236,10 @@ function handleNetworkData(data, conn) {
     if(isHost) {
         if(data.type === 'JOIN') {
             const idx = players.length;
+            conn.playerIdx = idx;
+            conn.playerName = data.name;
+            connections.push(conn);
+
             players.push({ id: idx, name: data.name, color: COLOR_PALETTE[idx].hex, darkColor: COLOR_PALETTE[idx].darkHex, score: 0 });
             conn.send({ type: 'ASSIGN_INDEX', index: idx });
             broadcastLobbyState();
@@ -217,8 +269,46 @@ function handleNetworkData(data, conn) {
             renderScoreboard();
             drawBoard();
             checkGameOver();
+        } else if(data.type === 'PLAYER_LEFT') {
+            showToast(`${data.leftPlayerName} left the game`);
         }
     }
+}
+
+function handlePlayerDisconnect(conn) {
+    if (!isHost) return;
+    
+    const leftIdx = conn.playerIdx;
+    const leftName = conn.playerName || `Player ${leftIdx + 1}`;
+
+    connections = connections.filter(c => c !== conn);
+    players = players.filter((_, idx) => idx !== leftIdx);
+
+    connections.forEach((c) => {
+        if (c.playerIdx > leftIdx) {
+            c.playerIdx -= 1;
+            c.send({ type: 'ASSIGN_INDEX', index: c.playerIdx });
+        }
+    });
+
+    showToast(`${leftName} left the game`);
+    
+    connections.forEach(c => c.send({
+        type: 'PLAYER_LEFT',
+        leftPlayerName: leftName
+    }));
+
+    if (currentTurnIndex >= players.length) {
+        currentTurnIndex = 0;
+    }
+
+    if (players.length < 2) {
+        showCustomModal("GAME OVER", "<p>Not enough players to continue. Returning to menu.</p>", `<button class="btn-arcade btn-red" onclick="closeModal(); exitGame();">Menu</button>`);
+        return;
+    }
+
+    renderScoreboard();
+    broadcastGameState();
 }
 
 function broadcastLobbyState() {
@@ -362,12 +452,27 @@ function drawBoard() {
 
 function renderScoreboard() {
     const list = document.getElementById('players-score-list');
-    list.innerHTML = players.map((p, idx) => `
-        <div class="player-card ${idx === currentTurnIndex ? 'active' : ''}" style="background:${p.color};">
-            <span>${p.name}</span>
-            <span>${p.score} Boxes</span>
-        </div>
-    `).join('');
+    list.innerHTML = players.map((p, idx) => {
+        const isCurrentTurn = idx === currentTurnIndex;
+        let turnLabel = "";
+
+        if (isCurrentTurn) {
+            if (gameMode === 'room') {
+                turnLabel = (idx === myPlayerIndex) ? " (Your Turn)" : ` (${p.name}'s Turn)`;
+            } else if (gameMode === 'ai') {
+                turnLabel = (idx === 0) ? " (Your Turn)" : " (AI's Turn)";
+            } else {
+                turnLabel = " (Current Turn)";
+            }
+        }
+
+        return `
+            <div class="player-card ${isCurrentTurn ? 'active' : ''}" style="background:${p.color};">
+                <span>${p.name}${turnLabel}</span>
+                <span>${p.score} Boxes</span>
+            </div>
+        `;
+    }).join('');
 }
 
 function handleCanvasClick(e) {
@@ -381,9 +486,12 @@ function handleCanvasClick(e) {
     let closestLine = getClosestLine(x, y);
     if (!closestLine) return;
 
-    if (gameMode === 'room' && !isHost) {
-        connections[0].send({ type: 'MOVE', r: closestLine.r, c: closestLine.c, typeLine: closestLine.type });
-        return;
+    if (gameMode === 'room') {
+        if (currentTurnIndex !== myPlayerIndex) return;
+        if (!isHost) {
+            connections[0].send({ type: 'MOVE', r: closestLine.r, c: closestLine.c, typeLine: closestLine.type });
+            return;
+        }
     }
 
     makeMove(closestLine.r, closestLine.c, closestLine.type);
