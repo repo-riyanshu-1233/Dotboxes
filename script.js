@@ -58,7 +58,7 @@ function checkMaintenanceStatus() {
 }
 
 function redirectToOtherGame() {
-    window.location.href = OTHER_GAME_URL;
+    window.location.href = "https://arcade-edition.onrender.com/";
 }
 
 function showCustomModal(title, contentHTML, buttonsHTML = null) {
